@@ -9,7 +9,6 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from airflow.sdk import TriggerRule, dag, task
-
 from src.pipeline import find_new_pdf_paths, process_one_pdf, rebuild_catalog
 
 
@@ -25,7 +24,6 @@ from src.pipeline import find_new_pdf_paths, process_one_pdf, rebuild_catalog
 )
 def paper_pipeline():
     """Look for new PDFs, describe each one, then refresh the HTML catalog."""
-
     @task
     def find_new_pdfs() -> list[str]:
         return find_new_pdf_paths()
