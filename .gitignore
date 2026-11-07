@@ -1,0 +1,7 @@
+venv/
+.env
+*.db
+*.db-journal
+*.db-wal
+__pycache__/
+airflow.cfg
