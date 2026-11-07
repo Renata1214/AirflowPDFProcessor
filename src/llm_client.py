@@ -1,7 +1,5 @@
 import json
-
 from openai import OpenAI
-
 from src.config import OLLAMA_BASE_URL, OLLAMA_MODEL
 
 
@@ -31,7 +29,6 @@ def validate_metadata(data: dict) -> dict:
 
 def generate_metadata(markdown: str) -> dict:
     """Ask the local OpenAI-compatible server for paper metadata.
-
     JSON parsing and field checks run twice at most: the first response, then
     one retry when that response is not usable.
     """
@@ -42,37 +39,34 @@ def generate_metadata(markdown: str) -> dict:
     )
 
     prompt = f"""
-Extract metadata from the following research paper.
+        Extract metadata from the following research paper.
+        Return only a JSON object containing exactly these fields:
 
-Return only aJSON object containing exactly these fields:
+        {{
+            "title": "Paper title",
+            "summary": "A short summary of the paper",
+            "keywords": ["keyword one", "keyword two"],
+            "category": "Research category"
+        }}
 
-{{
-    "title": "Paper title",
-    "summary": "A short summary of the paper",
-    "keywords": ["keyword one", "keyword two"],
-    "category": "Research category"
-}}
-
-Requirements:
-- Use information from the document.
-- Provide a concise summary.
-- Return keywords as a list of strings.
-- Return valid JSON only.
-
-Paper:
-{markdown[:12000]}
-"""
-
+        Requirements:
+        - Use information from the document.
+        - Provide a concise summary.
+        - Return keywords as a list of strings.
+        - Return valid JSON only.
+        Paper:
+        {markdown}
+        """
     last_error: Exception | None = None
     for attempt in range(2):
         response = client.chat.completions.create(
             model=OLLAMA_MODEL,
-            messages=[
+            messages=
+            [
                 {
                     "role": "system",
                     "content": (
-                        "You extract research paper metadata and return valid JSON."
-                    ),
+                        "You extract research paper metadata and return valid JSON."),
                 },
                 {"role": "user", "content": prompt},
             ],
@@ -88,5 +82,5 @@ Paper:
             last_error = error
             if attempt == 1:
                 raise
-
+                
     raise RuntimeError("Metadata generation failed") from last_error

@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-
 from src.config import OUTPUT_DIR
 from src.database import get_connection, list_papers
 

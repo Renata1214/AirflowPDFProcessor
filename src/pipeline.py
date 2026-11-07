@@ -39,7 +39,7 @@ def find_new_pdf_paths() -> list[str]:
 
 
 def process_one_pdf(pdf_path: str) -> str:
-    from PDFtoMarkdown import pdf_to_markdown
+    from src.PDFtoMarkdown import pdf_to_markdown
 
     path = Path(pdf_path)
     markdown = pdf_to_markdown(path)

@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-
 from dotenv import load_dotenv
 
 # This file lives in src/, so the parent of that folder is the project root.
