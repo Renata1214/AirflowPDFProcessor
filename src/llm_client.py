@@ -7,6 +7,17 @@ from src.config import OLLAMA_BASE_URL, OLLAMA_MODEL
 # and introduction at the top of a paper are enough for the metadata.
 MAX_PAPER_CHARS = 8000
 
+# A fixed list keeps the category filter on the HTML page short and consistent.
+CATEGORIES = {
+    "Query Processing": "query engines, optimizers, cardinality estimation, semantic operators",
+    "Text-to-SQL": "translating natural-language questions into SQL",
+    "Data Cleaning and Integration": "data cleaning, repair, joins and matching across tables",
+    "Database Systems": "building, verifying or diagnosing database engines",
+    "Knowledge Graphs and RAG": "knowledge graphs, retrieval-augmented generation, provenance",
+    "Machine Learning for Data": "models trained on relational or tabular data",
+    "Data Engineering": "pipelines, storage and other data infrastructure",
+}
+
 
 def validate_metadata(data: dict) -> dict:
     if not isinstance(data, dict):
@@ -40,9 +51,12 @@ def generate_metadata(markdown: str) -> dict:
     client = OpenAI(
         base_url=OLLAMA_BASE_URL,
         api_key="ollama",
-        timeout=10.0,
+        timeout=60.0,
     )
 
+    category_list = "\n        ".join(
+        f"- {name}: {meaning}" for name, meaning in CATEGORIES.items()
+    )
     prompt = f"""
         Extract metadata from the following research paper.
         Return only a JSON object containing exactly these fields:
@@ -51,16 +65,21 @@ def generate_metadata(markdown: str) -> dict:
             "title": "Paper title",
             "summary": "A short summary of the paper",
             "keywords": ["keyword one", "keyword two"],
-            "category": "Research category"
+            "category": "one category from the list below"
         }}
 
         Requirements:
         - Use information from the document.
-        - Provide a concise summary.
-        - Return keywords as a list of strings.
+        - Copy the paper's own title, without Markdown symbols or a "Paper title:" prefix.
+        - Provide a concise summary of two or three sentences.
+        - Return three to six keywords as a list of strings.
+        - Choose the category that best matches the paper's main topic.
         - Return valid JSON only.
         Paper:
         {markdown[:MAX_PAPER_CHARS]}
+
+        Categories (use the name before the colon exactly):
+        {category_list}
         """
     last_error: Exception | None = None
     for attempt in range(2):
