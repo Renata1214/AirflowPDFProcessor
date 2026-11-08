@@ -5,3 +5,5 @@ venv/
 *.db-wal
 __pycache__/
 airflow.cfg
+docs/node_modules/
+docs/package*.json
