@@ -2,6 +2,11 @@ import json
 from openai import OpenAI
 from src.config import OLLAMA_BASE_URL, OLLAMA_MODEL
 
+# Ollama serves llama3.2:3b with a 4096-token context and silently drops the
+# start of a longer prompt, which removes the instructions. The title, abstract
+# and introduction at the top of a paper are enough for the metadata.
+MAX_PAPER_CHARS = 8000
+
 
 def validate_metadata(data: dict) -> dict:
     if not isinstance(data, dict):
@@ -35,7 +40,7 @@ def generate_metadata(markdown: str) -> dict:
     client = OpenAI(
         base_url=OLLAMA_BASE_URL,
         api_key="ollama",
-        timeout=180.0,
+        timeout=10.0,
     )
 
     prompt = f"""
@@ -55,7 +60,7 @@ def generate_metadata(markdown: str) -> dict:
         - Return keywords as a list of strings.
         - Return valid JSON only.
         Paper:
-        {markdown}
+        {markdown[:MAX_PAPER_CHARS]}
         """
     last_error: Exception | None = None
     for attempt in range(2):
