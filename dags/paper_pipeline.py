@@ -1,5 +1,3 @@
-"""Scheduled pipeline: new PDFs become Markdown, metadata, a catalog, and a Discord note."""
-
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path

@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# This file lives in src/, so the parent of that folder is the project root.
+# This file lives in src/
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 load_dotenv(PROJECT_ROOT / ".env")
@@ -17,7 +17,18 @@ def get_required_env(name: str) -> str:
 
 def resolve_path(value: str) -> Path:
     """Resolve a path from .env. Relative paths stay inside this project."""
-    path = Path(value).expanduser()
+    raw = value.strip()
+    normalized = raw.replace("\\", "/")
+    if normalized.startswith("/mnt/"):
+        parts = normalized.strip("/").split("/")
+        if len(parts) >= 3 and parts[0] == "mnt" and len(parts[1]) == 1 and parts[1].isalpha():
+            drive = parts[1].upper()
+            path = Path(f"{drive}:\\") / Path(*parts[2:])
+        else:
+            path = Path(normalized).expanduser()
+    else:
+        path = Path(raw).expanduser()
+
     if not path.is_absolute():
         path = PROJECT_ROOT / path
     return path

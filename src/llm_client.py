@@ -81,30 +81,47 @@ def generate_metadata(markdown: str) -> dict:
         Categories (use the name before the colon exactly):
         {category_list}
         """
-    last_error: Exception | None = None
+    messages = [
+        {
+            "role": "system",
+            "content": "You extract research paper metadata and return valid JSON.",
+        },
+        {"role": "user", "content": prompt},
+    ]
     for attempt in range(2):
         response = client.chat.completions.create(
             model=OLLAMA_MODEL,
-            messages=
-            [
-                {
-                    "role": "system",
-                    "content": (
-                        "You extract research paper metadata and return valid JSON."),
-                },
-                {"role": "user", "content": prompt},
-            ],
+            messages=messages,
             response_format={"type": "json_object"},
             temperature=0.1,
+            max_tokens=512,
         )
         try:
-            content = response.choices[0].message.content
-            if not content:
+            content = (
+                response.choices[0].message.content
+                if response.choices
+                else None
+            )
+            if not isinstance(content, str) or not content.strip():
                 raise ValueError("Empty LLM response")
             return validate_metadata(json.loads(content))
         except (json.JSONDecodeError, ValueError) as error:
-            last_error = error
             if attempt == 1:
-                raise
-                
-    raise RuntimeError("Metadata generation failed") from last_error
+                raise ValueError(
+                    "LLM returned invalid metadata after two attempts"
+                ) from error
+            messages.extend(
+                [
+                    {"role": "assistant", "content": content or ""},
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Your previous response was invalid: {error}. "
+                            "Return a corrected JSON object with non-empty "
+                            "title, summary, and category fields, plus a "
+                            "keywords list. The summary must be two or three "
+                            "sentences based on the paper."
+                        ),
+                    },
+                ]
+            )

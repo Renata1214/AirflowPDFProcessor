@@ -15,8 +15,6 @@ def write_catalog(
 
     destination = Path(output_dir) if output_dir is not None else OUTPUT_DIR
     destination.mkdir(parents=True, exist_ok=True)
-
-    # Keep "<" out of the embedded JSON so a summary cannot close the script tag.
     payload = json.dumps(papers, ensure_ascii=False).replace("<", "\\u003c")
     page = _PAGE.replace("/*__PAPERS__*/", payload)
     path = destination / "index.html"

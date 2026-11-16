@@ -1,5 +1,3 @@
-"""Work the DAG performs. Kept outside the DAG file so each step can run on its own."""
-
 import logging
 from pathlib import Path
 
